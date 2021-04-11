@@ -1,0 +1,44 @@
+{
+    "alpha":	0.2,
+    "auto_alpha":	true,
+    "batch_size":	256,
+    "determ_action":	false,
+    "env_fn":	"<function call_experiment.<locals>.thunk_plus.<locals>.<lambda> at 0x7fc1b8513f28>",
+    "epochs":	1000,
+    "exp_name":	"Ant_Test_ant-v3",
+    "gamma":	0.99,
+    "grad_clip":	-1,
+    "hidden_sizes":	[
+        256,
+        256
+    ],
+    "logger":	{
+        "<spinup.utils.logx.EpochLogger object at 0x7fc1b851fd68>":	{
+            "epoch_dict":	{},
+            "exp_name":	"Ant_Test_ant-v3",
+            "first_row":	true,
+            "log_current_row":	{},
+            "log_headers":	[],
+            "output_dir":	"../data/Ant_Test_ant-v3/Ant_Test_ant-v3_s3",
+            "output_file":	{
+                "<_io.TextIOWrapper name='../data/Ant_Test_ant-v3/Ant_Test_ant-v3_s3/progress.txt' mode='w' encoding='UTF-8'>":	{
+                    "mode":	"w"
+                }
+            }
+        }
+    },
+    "logger_kwargs":	{
+        "exp_name":	"Ant_Test_ant-v3",
+        "output_dir":	"../data/Ant_Test_ant-v3/Ant_Test_ant-v3_s3"
+    },
+    "logger_store_freq":	100,
+    "lr":	0.0003,
+    "max_ep_len":	1000,
+    "polyak":	0.995,
+    "replay_size":	1000000,
+    "save_freq":	1,
+    "save_model":	false,
+    "seed":	3,
+    "start_steps":	10000,
+    "steps_per_epoch":	1000
+}
