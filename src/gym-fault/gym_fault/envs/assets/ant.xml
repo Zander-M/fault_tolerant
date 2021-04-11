@@ -31,7 +31,7 @@
           <geom fromto="0.0 0.0 0.0 0.2 0.2 0.0" name="left_leg_geom" size="0.08" type="capsule"/>
           <body pos="0.2 0.2 0">
             <joint axis="-1 1 0" name="ankle_1" pos="0.0 0.0 0.0" range="30 70" type="hinge"/>
-            <geom fromto="0.0 0.0 0.0 0.4 0.4 0.0" name="left_ankle_geom" size="0.08" type="capsule"/>
+            <geom fromto="0.0 0.0 0.0 0.8 0.8 0.0" name="left_ankle_geom" size="0.08" type="capsule"/>
           </body>
         </body>
       </body>
@@ -79,9 +79,9 @@
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_2" gear="150"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_3" gear="150"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_3" gear="150"/>
+    <!-- <cylinder ctrllimited="true" ctrlrange="0. 100." joint="ankle_2" diameter="0.08" timeconst="1"/> -->
   </actuator>
   <sensor>
     <gyro name="gyro1" site="body"/>
-    <gyro name="gyro2" site="body"/>
   </sensor>
 </mujoco>

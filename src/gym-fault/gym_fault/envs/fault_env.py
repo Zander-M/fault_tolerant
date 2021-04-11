@@ -3,18 +3,22 @@ import numpy as np
 from gym import utils
 from gym.utils import seeding
 from gym.envs.mujoco import mujoco_env
-
+import mujoco_py
+import random
 
 DEFAULT_CAMERA_CONFIG = {
     'distance': 4.0,
 }
 
+MODEL_PATH = "../data/models/front_left/"
+
 '''
-An environment based on OpenAI Gym Ant-v3 environment.
+An environment based on OpenAI Gym Ant-v3 environment for testing fault tolerant behaviour.
+By default, the environment 
 '''
 class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self,
-                 xml_file=os.getcwd()+'/src/gym-fault/gym_fault/envs/assets/ant.xml',
+                 xml_path=os.getcwd()+'/../data/models/',
                  ctrl_cost_weight=0.5,
                  contact_cost_weight=5e-4,
                  healthy_reward=1.0,
@@ -22,7 +26,8 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                  healthy_z_range=(0.2, 1.0),
                  contact_force_range=(-1.0, 1.0),
                  reset_noise_scale=0.1,
-                 exclude_current_positions_from_observation=True):
+                 exclude_current_positions_from_observation=True,
+                 randomize=False):
         utils.EzPickle.__init__(**locals())
 
         self._ctrl_cost_weight = ctrl_cost_weight
@@ -38,7 +43,11 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self._exclude_current_positions_from_observation = (
             exclude_current_positions_from_observation)
-
+        self._randomize = randomize
+        if self._randomize:
+            xml_file = xml_path+"front_left/{}.xml".format(random.randrange(0, 3000))
+        else:
+            xml_file = xml_path+"ant.xml"
         mujoco_env.MujocoEnv.__init__(self, xml_file, 5)
 
     @property
@@ -114,6 +123,9 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             'forward_reward': forward_reward,
         }
 
+        if self._randomize:
+            # TODO define randomization logic here
+            pass
         return observation, reward, done, info
 
     def _get_obs(self):
@@ -140,8 +152,22 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         observation = self._get_obs()
 
+        # randomize model 
+        if self._randomize:
+            self._random_model()
         return observation
 
+    def _random_model(self):
+        '''
+           Randomly change current model from the model pool 
+        '''
+        i = random.randrange(0, 3000)
+        xml_file = "/home/zdrrrm/Desktop/Capstone/fault_tolerant/data/models/front_left/{}.xml".format(i)
+        # self.model.geom_size[4][1] = model.geom_size[4][1]
+        mujoco_env.MujocoEnv.__init__(self, xml_file, 5)
+        print("loading model {}.xml".format(i))
+        
+    
     def viewer_setup(self):
         for key, value in DEFAULT_CAMERA_CONFIG.items():
             if isinstance(value, np.ndarray):
