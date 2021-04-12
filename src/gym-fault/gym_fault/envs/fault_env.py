@@ -14,11 +14,12 @@ MODEL_PATH = "../data/models/front_left/"
 
 '''
 An environment based on OpenAI Gym Ant-v3 environment for testing fault tolerant behaviour.
-By default, the environment 
+By default, the environment only modifies the lenght of the robot's front left leg.
 '''
+
 class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self,
-                 xml_path=os.getcwd()+'/../data/models/',
+                 xml_path=os.path.dirname(__file__)+"/assets/models/",
                  ctrl_cost_weight=0.5,
                  contact_cost_weight=5e-4,
                  healthy_reward=1.0,
