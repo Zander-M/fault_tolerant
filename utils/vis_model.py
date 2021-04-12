@@ -5,6 +5,8 @@
 import mujoco_py
 import os
 
+# change model here
+
 XML_PATH = "/home/zdrrrm/Desktop/Capstone/fault_tolerant/data/models/front_left/0.xml"
 
 def visModel(xml):
