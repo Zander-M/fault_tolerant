@@ -12,11 +12,11 @@ noAction = np.zeros(actionSpaceSize)
 i = 0
 while (1):
     i += 0
-    # if i > 500:
-    #     # e._random_model()
-    #     print("qpos: ", e.sim.data.qpos)
-    #     print("xpos: ", e.sim.data.get_body_xpos())
-    #     i = 0
+    if i > 500:
+        e._random_model()
+        print("qpos: ", e.sim.data.qpos)
+        print("xpos: ", e.sim.data.get_body_xpos("torso"))
+        i = 0
     action = e.action_space.sample()
     # action = noAction  # put actions here
     # e.model.geom_size[4][1] -= 1e-3  # change model on the fly!
