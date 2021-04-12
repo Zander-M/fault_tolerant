@@ -132,11 +132,12 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         position = self.sim.data.qpos.flat.copy()
         velocity = self.sim.data.qvel.flat.copy()
         contact_force = self.contact_forces.flat.copy()
+        sensordata = self.sim.data.sensordata.flat.copy()
 
         if self._exclude_current_positions_from_observation:
             position = position[2:]
 
-        observations = np.concatenate((position, velocity, contact_force))
+        observations = np.concatenate((position, velocity, sensordata, contact_force))
 
         return observations
 
