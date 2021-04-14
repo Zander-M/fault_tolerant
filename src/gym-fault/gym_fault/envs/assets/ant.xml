@@ -79,7 +79,6 @@
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_2" gear="150"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_3" gear="150"/>
     <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_3" gear="150"/>
-    <!-- <cylinder ctrllimited="true" ctrlrange="0. 100." joint="ankle_2" diameter="0.08" timeconst="1"/> -->
   </actuator>
   <sensor>
     <gyro name="gyro1" site="body"/>

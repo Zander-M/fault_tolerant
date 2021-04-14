@@ -11,9 +11,10 @@ import random
 import numpy as np
 import json
 
-DATASET_NAME = "front_left"  # modify this when creating new model!
-SAVE_PATH = "data/models"
-MODEL_PATH = "data/ant.xml"
+ERROR = 0.5 # error range
+DATASET_NAME = "front_left_ankle_{}".format(ERROR)  # modify this when creating new model!
+SAVE_PATH = "src/gym-fault/gym_fault/envs/assets/models"
+MODEL_PATH = "src/gym-fault/gym_fault/envs/assets/ant.xml"
 FAULT_COLOR = "1. 0. 0. 1"  # mark fault parts as red
 
 # see ant.xml
@@ -42,13 +43,13 @@ def genModel(modelPath, savePath, datasetName,
         legLength = DEFAULT_LEG_LENGTH
         ankleLength = DEFAULT_ANKLE_LENGTH
         if randomLeg:
-            legLength = DEFAULT_LEG_LENGTH*random.random()  # left front leg
+            legLength = (1-ERROR)*DEFAULT_LEG_LENGTH + ERROR * DEFAULT_LEG_LENGTH*random.random()  # left front leg
             # print(legLength)
             legs[0].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
                 d=legLength*ORIENTATION[0]))
             legs[0].set("rgba", FAULT_COLOR)
         if randomAnkle:
-            ankleLength = DEFAULT_ANKLE_LENGTH*random.random()
+            ankleLength = (1-ERROR)*DEFAULT_ANKLE_LENGTH + ERROR * DEFAULT_ANKLE_LENGTH*random.random()
             # print(ankleLength)
             ankles[0].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
                 d=ankleLength*ORIENTATION[0]))

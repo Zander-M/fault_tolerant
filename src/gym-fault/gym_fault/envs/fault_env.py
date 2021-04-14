@@ -1,3 +1,8 @@
+'''
+An environment based on OpenAI Gym Ant-v3 environment for testing fault tolerant behaviour.
+By default, the environment only modifies the lenght of the robot's front left leg.
+'''
+
 import os
 import numpy as np
 from gym import utils
@@ -10,12 +15,6 @@ DEFAULT_CAMERA_CONFIG = {
     'distance': 4.0,
 }
 
-MODEL_PATH = "../data/models/front_left/"
-
-'''
-An environment based on OpenAI Gym Ant-v3 environment for testing fault tolerant behaviour.
-By default, the environment only modifies the lenght of the robot's front left leg.
-'''
 
 class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self,
@@ -28,9 +27,11 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                  contact_force_range=(-1.0, 1.0),
                  reset_noise_scale=0.1,
                  exclude_current_positions_from_observation=True,
+                 joint_error=0.1,
                  randomize=False):
         utils.EzPickle.__init__(**locals())
 
+        self._xml_path = xml_path
         self._ctrl_cost_weight = ctrl_cost_weight
         self._contact_cost_weight = contact_cost_weight
 
@@ -44,9 +45,12 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self._exclude_current_positions_from_observation = (
             exclude_current_positions_from_observation)
+        self._joint_error = joint_error
         self._randomize = randomize
         if self._randomize:
-            xml_file = xml_path+"front_left/{}.xml".format(random.randrange(0, 3000))
+            xml_file = self._xml_path + \
+                "front_left_ankle_{}/{}.xml".format(self._joint_error,
+                                              random.randrange(0, 3000))
         else:
             xml_file = xml_path+"ant.xml"
         mujoco_env.MujocoEnv.__init__(self, xml_file, 5)
@@ -124,9 +128,6 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             'forward_reward': forward_reward,
         }
 
-        if self._randomize:
-            # TODO define randomization logic here
-            pass
         return observation, reward, done, info
 
     def _get_obs(self):
@@ -138,11 +139,16 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         if self._exclude_current_positions_from_observation:
             position = position[2:]
 
-        observations = np.concatenate((position, velocity, sensordata, contact_force))
+        observations = np.concatenate(
+            (position, velocity, contact_force, sensordata))
 
         return observations
 
     def reset_model(self):
+
+        if self._randomize:
+            self._random_model()
+
         noise_low = -self._reset_noise_scale
         noise_high = self._reset_noise_scale
 
@@ -154,9 +160,7 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         observation = self._get_obs()
 
-        # randomize model 
-        if self._randomize:
-            self._random_model()
+        # randomize model
         return observation
 
     def _random_model(self):
@@ -164,12 +168,30 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
            Randomly change current model from the model pool 
         '''
         i = random.randrange(0, 3000)
-        xml_file = "/home/zdrrrm/Desktop/Capstone/fault_tolerant/data/models/front_left/{}.xml".format(i)
-        # self.model.geom_size[4][1] = model.geom_size[4][1]
-        mujoco_env.MujocoEnv.__init__(self, xml_file, 5)
+        xml_file = self._xml_path + "front_left_ankle_{}/{}.xml".format(
+            self._joint_error, i)
+
+        # model = mujoco_py.load_model_from_path(xml_file)
+        self.model = mujoco_py.load_model_from_path(xml_file)
+        self.sim = mujoco_py.MjSim(self.model)
+        self.data = self.sim.data
+        if self.viewer is not None: 
+            self.viewer.update_sim(self.sim)
+        # self.viewer = None
+        # self._viewers = {}
+
         print("loading model {}.xml".format(i))
-        
-    
+        self.init_qpos = self.sim.data.qpos.ravel().copy()
+        self.init_qvel = self.sim.data.qvel.ravel().copy()
+
+        self._set_action_space()
+
+        action = self.action_space.sample()
+        observation, _reward, done, _info = self.step(action)
+        assert not done
+
+        self._set_observation_space(observation)
+
     def viewer_setup(self):
         for key, value in DEFAULT_CAMERA_CONFIG.items():
             if isinstance(value, np.ndarray):
