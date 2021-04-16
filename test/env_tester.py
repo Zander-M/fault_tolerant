@@ -3,7 +3,7 @@ import numpy as np
 import mujoco_py
 import random
 
-e = gym.make("gym_fault:fault-v0")
+e = gym.make("gym_fault:fault-v0", randomize=True, joint_error=0.5)
 print(e.model.geom_size)
 actionSpaceSize = len(e.action_space.sample())
 noAction = np.zeros(actionSpaceSize)
@@ -11,6 +11,7 @@ noAction = np.zeros(actionSpaceSize)
     # [1., 0., 0., 1.], dtype='float32')  # change fault color
 i = 0
 total_reward = 0
+e.reset()
 e._randomize = True
 while (1):
     i += 0
