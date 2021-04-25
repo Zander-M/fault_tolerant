@@ -3,7 +3,7 @@ import numpy as np
 import mujoco_py
 import random
 
-e = gym.make("gym_fault:fault-v0", randomize=True, joint_error=0.5)
+e = gym.make("gym_fault:fault-v0", randomize=True, joint_error=0.7)
 print(e.model.geom_size)
 actionSpaceSize = len(e.action_space.sample())
 noAction = np.zeros(actionSpaceSize)
@@ -12,7 +12,6 @@ noAction = np.zeros(actionSpaceSize)
 i = 0
 total_reward = 0
 e.reset()
-e._randomize = True
 while (1):
     i += 0
     if i > 500:
@@ -22,11 +21,6 @@ while (1):
         i = 0
         total_reward = 0
     action = e.action_space.sample()
-    # action = noAction  # put actions here
-    # e.model.geom_size[4][1] -= 1e-3  # change model on the fly!
-    # e.model.geom_pos[4][1] += 1e-4  # change model on the fly!
-    # e.model.body_ipos[4][2] += 1e-3  # change model on the fly!
-    # ximat = e.sim.data.get_body_ximat("front_right_leg")
     observation, reward, done, info = e.step(action)
     e.render()
     i += 1

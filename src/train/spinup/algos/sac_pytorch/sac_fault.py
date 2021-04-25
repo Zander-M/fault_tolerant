@@ -99,7 +99,7 @@ def sac_fault(env_fn, hidden_sizes=[256, 256], seed=0,
     logger.save_config(locals())
 
     env, test_env = env_fn(randomize=randomize, joint_error=joint_error), \
-        env_fn(randomize=randomize, joint_error=joint_error)
+        env_fn(randomize=True, joint_error=joint_error)  # always evaluate at randomized environment
 
     # seed torch and numpy
     torch.manual_seed(seed)
@@ -153,6 +153,9 @@ def sac_fault(env_fn, hidden_sizes=[256, 256], seed=0,
                 ep_len += 1
             ep_return_list[j] = ep_ret
             logger.store(TestEpRet=ep_ret, TestEpLen=ep_len)
+    
+    if (save_model):
+        logger.setup_pytorch_saver()
 
     start_time = time.time()
     o, r, d, ep_ret, ep_len = env.reset(), 0, False, 0, 0
@@ -376,6 +379,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=1000)
     parser.add_argument('--exp_name', type=str, default='sac')
     parser.add_argument('--data_dir', type=str, default='data/')
+    parser.add_argument('--save_model', type=bool, default=False)
     parser.add_argument('--steps_per_epoch', type=int, default=1000)
     parser.add_argument("--randomize", type=bool, default=False)
     parser.add_argument("--joint_error", type=float, default=0.1)
@@ -385,10 +389,11 @@ if __name__ == '__main__':
 
     from spinup.utils.run_utils import setup_logger_kwargs
     logger_kwargs = setup_logger_kwargs(args.exp_name, args.seed)
-
+    torch.autograd.set_detect_anomaly(True)
     sac_fault(lambda randomize, joint_error: gym.make(args.env, randomize=randomize, joint_error=joint_error),
               hidden_sizes=[args.hid] * args.l,
               gamma=args.gamma, seed=args.seed, epochs=args.epochs,
+              save_model=args.save_model,
               steps_per_epoch=args.steps_per_epoch,
               logger_kwargs=logger_kwargs,
               randomize=args.randomize,

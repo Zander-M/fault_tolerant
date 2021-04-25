@@ -1,6 +1,5 @@
 '''
 An environment based on OpenAI Gym Ant-v3 environment for testing fault tolerant behaviour.
-By default, the environment only modifies the lenght of the robot's front left leg.
 '''
 
 import os
@@ -10,6 +9,8 @@ from gym.utils import seeding
 from gym.envs.mujoco import mujoco_env
 import mujoco_py
 import random
+import json
+import pickle
 
 DEFAULT_CAMERA_CONFIG = {
     'distance': 4.0,
@@ -18,7 +19,7 @@ DEFAULT_CAMERA_CONFIG = {
 
 class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self,
-                 xml_path=os.path.dirname(__file__)+"/assets/models/",
+                 data_path=os.path.dirname(__file__)+"/assets/models/",
                  ctrl_cost_weight=0.5,
                  contact_cost_weight=5e-4,
                  healthy_reward=1.0,
@@ -27,11 +28,12 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                  contact_force_range=(-1.0, 1.0),
                  reset_noise_scale=0.1,
                  exclude_current_positions_from_observation=True,
-                 joint_error=0.1,
+                 ankle_error=0.1,
+                 leg_error=0.1,
                  randomize=False):
         utils.EzPickle.__init__(**locals())
 
-        self._xml_path = xml_path
+        self._data_path = data_path
         self._ctrl_cost_weight = ctrl_cost_weight
         self._contact_cost_weight = contact_cost_weight
 
@@ -45,14 +47,20 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self._exclude_current_positions_from_observation = (
             exclude_current_positions_from_observation)
-        self._joint_error = joint_error
+        self._ankle_error = ankle_error
+        self._leg_error = leg_error
         self._randomize = randomize
         if self._randomize:
-            xml_file = self._xml_path + \
-                "front_left_ankle_{}/{}.xml".format(self._joint_error,
+            xml_file = self._data_path + \
+                "ankle{}_leg{}/{}.xml".format(self._ankle_error, self._leg_error,
                                               random.randrange(0, 3000))
+            struct_file = self._data_path + \
+                "ankle{}_leg{}/{}.pkl".format(self._ankle_error, self._leg_error,
+                                              random.randrange(0, 3000))
+            self.model_struct = pickle.load(struct_file)
         else:
-            xml_file = xml_path+"ant.xml"
+            xml_file = data_path+"ant.xml"
+            self.model_struct = [0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4]
         mujoco_env.MujocoEnv.__init__(self, xml_file, 5)
 
     @property
@@ -148,6 +156,7 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         if self._randomize:
             self._random_model()
+
         noise_low = -self._reset_noise_scale
         noise_high = self._reset_noise_scale
 
@@ -167,29 +176,17 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
            Randomly change current model from the model pool 
         '''
         i = random.randrange(0, 3000)
-        xml_file = self._xml_path + "front_left_ankle_{}/{}.xml".format(
-            self._joint_error, i)
+        xml_file = self._data_path + "ankle{}_leg{}/{}.xml".format(
+            self._ankle_error, self._leg_error, i)
 
-        # model = mujoco_py.load_model_from_path(xml_file)
+        struct_file = self._data_path + "ankle{}_leg{}/{}.pkl".format(
+            self._ankle_error, self._leg_error, i)
         self.model = mujoco_py.load_model_from_path(xml_file)
+        self.model_struct = pickle.load(struct_file)
         self.sim = mujoco_py.MjSim(self.model)
         self.data = self.sim.data
-        if self.viewer is not None: 
+        if self.viewer is not None:
             self.viewer.update_sim(self.sim)
-        # self.viewer = None
-        # self._viewers = {}
-
-        # print("loading model {}.xml".format(i))
-        # self.init_qpos = self.sim.data.qpos.ravel().copy()
-        # self.init_qvel = self.sim.data.qvel.ravel().copy()
-
-        # self._set_action_space()
-
-        # action = self.action_space.sample()
-        # observation, _reward, done, _info = self.step(action)
-        # assert not done
-
-        # self._set_observation_space(observation)
 
     def viewer_setup(self):
         for key, value in DEFAULT_CAMERA_CONFIG.items():
@@ -197,3 +194,9 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                 getattr(self.viewer.cam, key)[:] = value
             else:
                 setattr(self.viewer.cam, key, value)
+
+    def curr_struct(self):
+        '''
+            return current model structure
+        '''
+        pass

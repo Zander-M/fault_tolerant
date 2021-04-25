@@ -5,10 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: Train",
             "type": "python",
             "request": "launch",
             "program": "${file}",
+            "cwd": "${workspaceFolder}/src/train/predStruct",
             "console": "integratedTerminal",
             "env": {
                 "DISPLAY": ":0"

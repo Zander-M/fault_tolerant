@@ -9,10 +9,12 @@ import re
 import os
 import random
 import numpy as np
-import json
+import pickle
 
-ERROR = 0.5 # error range
-DATASET_NAME = "front_left_ankle_{}".format(ERROR)  # modify this when creating new model!
+ANKLE_ERROR = 1.0  # error range
+LEG_ERROR = 1.0  # error range
+# modify this when creating new model!
+DATASET_NAME = "ankle{}_leg{}".format(ANKLE_ERROR, LEG_ERROR)
 SAVE_PATH = "src/gym-fault/gym_fault/envs/assets/models"
 MODEL_PATH = "src/gym-fault/gym_fault/envs/assets/ant.xml"
 FAULT_COLOR = "1. 0. 0. 1"  # mark fault parts as red
@@ -39,40 +41,43 @@ def genModel(modelPath, savePath, datasetName,
         "name") and re.match(".*ankle_geom$", ankle.get("name"))]
     legs = [leg for leg in geoms if leg.get(
         "name") and re.match(".*leg_geom$", leg.get("name"))]
+    legLengths = []
+    ankleLengths = []
     for i in range(numModel):
         legLength = DEFAULT_LEG_LENGTH
         ankleLength = DEFAULT_ANKLE_LENGTH
         if randomLeg:
-            legLength = (1-ERROR)*DEFAULT_LEG_LENGTH + ERROR * DEFAULT_LEG_LENGTH*random.random()  # left front leg
-            # print(legLength)
-            legs[0].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
-                d=legLength*ORIENTATION[0]))
-            legs[0].set("rgba", FAULT_COLOR)
+            for j in range(4):
+                legLength = (1-LEG_ERROR)*DEFAULT_LEG_LENGTH + \
+                    LEG_ERROR * DEFAULT_LEG_LENGTH*random.random()
+                legLengths.append(legLength)
+                # print(legLength)
+                legs[j].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
+                    d=legLength*ORIENTATION[j]))
+                legs[j].set("rgba", FAULT_COLOR)
         if randomAnkle:
-            ankleLength = (1-ERROR)*DEFAULT_ANKLE_LENGTH + ERROR * DEFAULT_ANKLE_LENGTH*random.random()
-            # print(ankleLength)
-            ankles[0].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
-                d=ankleLength*ORIENTATION[0]))
-            ankles[0].set("rgba", FAULT_COLOR)
+            for j in range(4):
+                ankleLength = (1-ANKLE_ERROR)*DEFAULT_ANKLE_LENGTH + \
+                    ANKLE_ERROR * DEFAULT_ANKLE_LENGTH*random.random()
+                ankleLengths.append(ankleLength)
+                # print(ankleLength)
+                ankles[j].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
+                    d=ankleLength*ORIENTATION[j]))
+                ankles[j].set("rgba", FAULT_COLOR)
 
         # save file
         with open("{}/{}/{}.xml".format(savePath, datasetName, i), "wb") as fb:
             tree.write(fb)
-        fb.close()
+            fb.close()
 
-        d = {
-            "legLength": [legLength, DEFAULT_LEG_LENGTH, DEFAULT_LEG_LENGTH, DEFAULT_LEG_LENGTH],
-            "ankleLength": [ankleLength, DEFAULT_ANKLE_LENGTH, DEFAULT_ANKLE_LENGTH, DEFAULT_ANKLE_LENGTH]
-        }
-        with open("{}/{}/{}.json".format(savePath, datasetName, i), "w") as f:
-            json.dump(d, f)
-        f.close()
-    return
+        with open("{}/{}/{}.pkl".format(savePath, datasetName, i), "w") as f:
+            pickle.dump(ankleLengths + legLengths)
+            f.close()
+
 
 if __name__ == "__main__":
     os.chdir("../")  # go to root directory
     if not os.path.isdir("{}/{}".format(SAVE_PATH, DATASET_NAME)):
         os.mkdir("{}/{}".format(SAVE_PATH, DATASET_NAME))
     genModel(MODEL_PATH, SAVE_PATH, DATASET_NAME,
-             numModel=3000, randomAnkle=True)
-    print("Done. Press Ctrl+C to exit")
+             numModel=3000, randomAnkle=True, randomLeg=True)

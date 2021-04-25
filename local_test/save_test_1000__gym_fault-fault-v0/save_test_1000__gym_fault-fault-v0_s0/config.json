@@ -1,0 +1,45 @@
+{
+    "alpha":	0.2,
+    "auto_alpha":	true,
+    "batch_size":	256,
+    "env_fn":	"<function call_experiment.<locals>.thunk_plus.<locals>.<lambda> at 0x7f6ad6b05e18>",
+    "epochs":	5,
+    "exp_name":	"save_test_1000__gym_fault-fault-v0",
+    "gamma":	0.99,
+    "grad_clip":	-1,
+    "hidden_sizes":	[
+        256,
+        256
+    ],
+    "joint_error":	0.1,
+    "logger":	{
+        "<spinup.utils.logx.EpochLogger object at 0x7f6ad6b22b00>":	{
+            "epoch_dict":	{},
+            "exp_name":	"save_test_1000__gym_fault-fault-v0",
+            "first_row":	true,
+            "log_current_row":	{},
+            "log_headers":	[],
+            "output_dir":	"../local_test/save_test_1000__gym_fault-fault-v0/save_test_1000__gym_fault-fault-v0_s0",
+            "output_file":	{
+                "<_io.TextIOWrapper name='../local_test/save_test_1000__gym_fault-fault-v0/save_test_1000__gym_fault-fault-v0_s0/progress.txt' mode='w' encoding='UTF-8'>":	{
+                    "mode":	"w"
+                }
+            }
+        }
+    },
+    "logger_kwargs":	{
+        "exp_name":	"save_test_1000__gym_fault-fault-v0",
+        "output_dir":	"../local_test/save_test_1000__gym_fault-fault-v0/save_test_1000__gym_fault-fault-v0_s0"
+    },
+    "logger_store_freq":	100,
+    "lr":	0.0003,
+    "max_ep_len":	1000,
+    "polyak":	0.995,
+    "randomize":	true,
+    "replay_size":	1000000,
+    "save_freq":	1,
+    "save_model":	true,
+    "seed":	0,
+    "start_steps":	10000,
+    "steps_per_epoch":	1000
+}
