@@ -26,7 +26,9 @@ def sac_fault(env_fn, hidden_sizes=[256, 256], seed=0,
               auto_alpha=True, grad_clip=-1, logger_store_freq=100,
               logger_kwargs=dict(),
               randomize=True,
-              joint_error=0.1):
+              concat_model=False,
+              ankle_error=0.1,
+              leg_error=0.1):
     """
     Largely following OpenAI documentation, but a bit different
     Args:
@@ -98,8 +100,14 @@ def sac_fault(env_fn, hidden_sizes=[256, 256], seed=0,
     logger = EpochLogger(**logger_kwargs)
     logger.save_config(locals())
 
-    env, test_env = env_fn(randomize=randomize, joint_error=joint_error), \
-        env_fn(randomize=True, joint_error=joint_error)  # always evaluate at randomized environment
+    env = env_fn(randomize=randomize,
+                 ankle_error=ankle_error,
+                 leg_error=leg_error,
+                 concat_model=concat_model)
+    test_env = env_fn(randomize=True,
+                      ankle_error=ankle_error,
+                      leg_error=leg_error,
+                      concat_model=concat_model)  # always evaluate at randomized environment
 
     # seed torch and numpy
     torch.manual_seed(seed)
@@ -153,7 +161,7 @@ def sac_fault(env_fn, hidden_sizes=[256, 256], seed=0,
                 ep_len += 1
             ep_return_list[j] = ep_ret
             logger.store(TestEpRet=ep_ret, TestEpLen=ep_len)
-    
+
     if (save_model):
         logger.setup_pytorch_saver()
 
@@ -371,7 +379,7 @@ def sac_fault(env_fn, hidden_sizes=[256, 256], seed=0,
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='HalfCheetah-v2')
+    parser.add_argument('--env', type=str, default='gym_fault:fault-v0')
     parser.add_argument('--hid', type=int, default=256)
     parser.add_argument('--l', type=int, default=2)
     parser.add_argument('--gamma', type=float, default=0.99)
@@ -382,6 +390,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_model', type=bool, default=False)
     parser.add_argument('--steps_per_epoch', type=int, default=1000)
     parser.add_argument("--randomize", type=bool, default=False)
+    parser.add_argument("--concat_model", type=bool, default=False)
     parser.add_argument("--joint_error", type=float, default=0.1)
     args = parser.parse_args()
     # Note: these default arguments will be ignored when you import the function
@@ -397,4 +406,5 @@ if __name__ == '__main__':
               steps_per_epoch=args.steps_per_epoch,
               logger_kwargs=logger_kwargs,
               randomize=args.randomize,
+              concat_model=args.concat_model,
               joint_error=args.joint_error)

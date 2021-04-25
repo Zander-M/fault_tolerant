@@ -30,7 +30,8 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                  exclude_current_positions_from_observation=True,
                  ankle_error=0.1,
                  leg_error=0.1,
-                 randomize=False):
+                 randomize=False,
+                 concat_model=False):
         utils.EzPickle.__init__(**locals())
 
         self._data_path = data_path
@@ -50,6 +51,7 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self._ankle_error = ankle_error
         self._leg_error = leg_error
         self._randomize = randomize
+        self._concat_model = concat_model
         if self._randomize:
             xml_file = self._data_path + \
                 "ankle{}_leg{}/{}.xml".format(self._ankle_error, self._leg_error,
@@ -57,7 +59,7 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             struct_file = self._data_path + \
                 "ankle{}_leg{}/{}.pkl".format(self._ankle_error, self._leg_error,
                                               random.randrange(0, 3000))
-            self.model_struct = pickle.load(struct_file)
+            self.model_struct = np.array(pickle.load(struct_file))
         else:
             xml_file = data_path+"ant.xml"
             self.model_struct = [0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4]
@@ -147,8 +149,12 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         if self._exclude_current_positions_from_observation:
             position = position[2:]
 
-        observations = np.concatenate(
-            (position, velocity, contact_force, sensordata))
+        if self._concat_model:
+            observations = np.concatenate(
+                (position, velocity, contact_force, sensordata, self.model_struct))
+        else:
+            observations = np.concatenate(
+                (position, velocity, contact_force, sensordata, np.zeros(8)))
 
         return observations
 
