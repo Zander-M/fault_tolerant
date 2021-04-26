@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 data
-=======
-data/models
->>>>>>> 39682e848a8eff4854ead249f3682eaaee4883f8
 src/gym-fault/gym_fault/envs/assets
+__pycache__/
+src/gym-fault/gym_fault/envs/__pycache__
