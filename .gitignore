@@ -1,4 +1,3 @@
 data
 src/gym-fault/gym_fault/envs/assets
 __pycache__/
-src/gym-fault/gym_fault/envs/__pycache__
