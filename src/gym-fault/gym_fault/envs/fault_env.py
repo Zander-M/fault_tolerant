@@ -53,12 +53,13 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self._randomize = randomize
         self._concat_model = concat_model
         if self._randomize:
+            model_idx = random.randrange(0, 3000)
             xml_file = self._data_path + \
                 "ankle{}_leg{}/{}.xml".format(self._ankle_error, self._leg_error,
-                                              random.randrange(0, 3000))
+                                              model_idx)
             struct_file = self._data_path + \
                 "ankle{}_leg{}/{}.pkl".format(self._ankle_error, self._leg_error,
-                                              random.randrange(0, 3000))
+                                              model_idx)
             self.model_struct = np.array(pickle.load(struct_file))
         else:
             xml_file = data_path+"ant.xml"
@@ -144,17 +145,16 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         position = self.sim.data.qpos.flat.copy()
         velocity = self.sim.data.qvel.flat.copy()
         contact_force = self.contact_forces.flat.copy()
-        sensordata = self.sim.data.sensordata.flat.copy()
 
         if self._exclude_current_positions_from_observation:
             position = position[2:]
 
         if self._concat_model:
             observations = np.concatenate(
-                (position, velocity, contact_force, sensordata, self.model_struct))
+                (position, velocity, contact_force, self.model_struct))
         else:
             observations = np.concatenate(
-                (position, velocity, contact_force, sensordata, np.zeros(8)))
+                (position, velocity, contact_force, np.zeros(8)))
 
         return observations
 
@@ -205,4 +205,4 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         '''
             return current model structure
         '''
-        pass
+        return self.model_struct

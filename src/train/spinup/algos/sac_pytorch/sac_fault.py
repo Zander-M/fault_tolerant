@@ -350,7 +350,8 @@ def sac_fault(env_fn, hidden_sizes=[256, 256], seed=0,
                                   'q1_opt': q1_optimizer, 'q2_opt': q2_optimizer,
                                   'log_alpha': log_alpha, 'alpha_opt': alpha_optim, 'target_entropy': target_entropy}
                 if (epoch % save_freq == 0) or (epoch == epochs-1):
-                    logger.save_state(sac_state_dict, None)
+                    # logger.save_state(sac_state_dict, None)
+                    logger.save_state(sac_state_dict, epoch)
             # use joblib.load(fname) to load
 
             # Test the performance of the deterministic version of the agent.

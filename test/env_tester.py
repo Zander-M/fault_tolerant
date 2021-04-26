@@ -3,7 +3,7 @@ import numpy as np
 import mujoco_py
 import random
 
-e = gym.make("gym_fault:fault-v0", randomize=True, joint_error=0.7)
+e = gym.make("gym_fault:fault-v0", randomize=True, ankle_error=0.1, leg_error=0.1)
 print(e.model.geom_size)
 actionSpaceSize = len(e.action_space.sample())
 noAction = np.zeros(actionSpaceSize)
