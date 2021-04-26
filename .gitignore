@@ -1,2 +1,3 @@
 data/models
+data/train_data
 src/gym-fault/gym_fault/envs/assets

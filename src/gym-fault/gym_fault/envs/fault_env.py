@@ -9,8 +9,11 @@ from gym.utils import seeding
 from gym.envs.mujoco import mujoco_env
 import mujoco_py
 import random
-import json
+import xml.etree.ElementTree as et
+from xml.etree.ElementTree import tostring
+import re
 import pickle
+import tempfile
 
 DEFAULT_CAMERA_CONFIG = {
     'distance': 4.0,
@@ -52,19 +55,9 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         self._leg_error = leg_error
         self._randomize = randomize
         self._concat_model = concat_model
-        if self._randomize:
-            model_idx = random.randrange(0, 3000)
-            xml_file = self._data_path + \
-                "ankle{}_leg{}/{}.xml".format(self._ankle_error, self._leg_error,
-                                              model_idx)
-            struct_file = self._data_path + \
-                "ankle{}_leg{}/{}.pkl".format(self._ankle_error, self._leg_error,
-                                              model_idx)
-            self.model_struct = np.array(pickle.load(struct_file))
-        else:
-            xml_file = data_path+"ant.xml"
-            self.model_struct = [0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4]
-        mujoco_env.MujocoEnv.__init__(self, xml_file, 5)
+        self.xml_file_path = data_path+"ant.xml"
+        self.model_struct = [0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4]
+        mujoco_env.MujocoEnv.__init__(self, self.xml_file_path, 5)
 
     @property
     def healthy_reward(self):
@@ -179,16 +172,49 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def _random_model(self):
         '''
-           Randomly change current model from the model pool 
+           Randomly generate a new model based on error margin
         '''
-        i = random.randrange(0, 3000)
-        xml_file = self._data_path + "ankle{}_leg{}/{}.xml".format(
-            self._ankle_error, self._leg_error, i)
+        default_leg_length = 0.2
+        default_ankle_length = 0.4
 
-        struct_file = self._data_path + "ankle{}_leg{}/{}.pkl".format(
-            self._ankle_error, self._leg_error, i)
-        self.model = mujoco_py.load_model_from_path(xml_file)
-        self.model_struct = pickle.load(struct_file)
+        # changing orientation
+        orientation = np.array([[1, 1, 0],
+                                [-1, 1, 0],
+                                [-1, -1, 0],
+                                [1, -1, 0]])
+
+        fault_color = "1. 0. 0. 1"  # mark fault parts as red
+
+        tree = et.ElementTree(file=self.xml_file_path)
+        root = tree.getroot()
+
+        geoms = [geom for geom in root.iter("geom")]
+        ankles = [ankle for ankle in geoms if ankle.get(
+            "name") and re.match(".*ankle_geom$", ankle.get("name"))]
+        legs = [leg for leg in geoms if leg.get(
+            "name") and re.match(".*leg_geom$", leg.get("name"))]
+
+        legLengths = []
+        ankleLengths = []
+
+        for j in range(4):
+            legLength = (1-self._leg_error)*default_leg_length + \
+                self._leg_error*default_leg_length*random.random()
+            legLengths.append(legLength)
+            # print(legLength)
+            legs[j].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
+                d=legLength*orientation[j]))
+            legs[j].set("rgba", fault_color)
+            ankleLength = (1-self._ankle_error)*default_ankle_length + \
+                self._ankle_error * default_ankle_length*random.random()
+            ankleLengths.append(ankleLength)
+            ankles[j].set("fromto", "0.0 0.0 0.0 {d[0]} {d[1]} {d[2]}".format(
+                d=ankleLength*orientation[j]))
+            ankles[j].set("rgba", fault_color)
+
+        model_xml = tostring(root, encoding="unicode")
+        self.model = mujoco_py.load_model_from_xml(model_xml)
+        self.model_struct = ankleLengths + legLengths
         self.sim = mujoco_py.MjSim(self.model)
         self.data = self.sim.data
         if self.viewer is not None:

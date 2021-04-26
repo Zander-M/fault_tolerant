@@ -11,6 +11,7 @@ import random
 import numpy as np
 import pickle
 
+
 ANKLE_ERROR = 1.0  # error range
 LEG_ERROR = 1.0  # error range
 # modify this when creating new model!
@@ -70,8 +71,8 @@ def genModel(modelPath, savePath, datasetName,
             tree.write(fb)
             fb.close()
 
-        with open("{}/{}/{}.pkl".format(savePath, datasetName, i), "w") as f:
-            pickle.dump(ankleLengths + legLengths)
+        with open("{}/{}/{}.pkl".format(savePath, datasetName, i), "wb") as f:
+            pickle.dump(ankleLengths + legLengths, f)
             f.close()
 
 
@@ -79,5 +80,14 @@ if __name__ == "__main__":
     os.chdir("../")  # go to root directory
     if not os.path.isdir("{}/{}".format(SAVE_PATH, DATASET_NAME)):
         os.mkdir("{}/{}".format(SAVE_PATH, DATASET_NAME))
-    genModel(MODEL_PATH, SAVE_PATH, DATASET_NAME,
-             numModel=3000, randomAnkle=True, randomLeg=True)
+    percentage = [0.1, 0.3, 0.5, 0.7, 0.9]
+    for i in percentage:
+        ANKLE_ERROR = i
+        for j in percentage:
+            LEG_ERROR = j
+            DATASET_NAME = "ankle{}_leg{}".format(ANKLE_ERROR, LEG_ERROR)
+
+            if not os.path.isdir("{}/{}".format(SAVE_PATH, DATASET_NAME)):
+                os.mkdir("{}/{}".format(SAVE_PATH, DATASET_NAME))
+            genModel(MODEL_PATH, SAVE_PATH, DATASET_NAME,
+                     numModel=3000, randomAnkle=True, randomLeg=True)
