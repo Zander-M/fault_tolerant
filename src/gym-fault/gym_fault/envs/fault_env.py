@@ -138,6 +138,7 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         position = self.sim.data.qpos.flat.copy()
         velocity = self.sim.data.qvel.flat.copy()
         contact_force = self.contact_forces.flat.copy()
+        sensordata = self.sim.data.sensordata.flat.copy()
 
         if self._exclude_current_positions_from_observation:
             position = position[2:]
@@ -155,7 +156,6 @@ class FaultEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         if self._randomize:
             self._random_model()
-
         noise_low = -self._reset_noise_scale
         noise_high = self._reset_noise_scale
 
